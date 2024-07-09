@@ -1,0 +1,8 @@
+gradio==4.29.0
+langchain-community==0.2.6
+langchain==0.2.6
+langchain-core==0.2.11
+requests
+torch==2.3.1+cu118
+torchaudio==2.3.1+cu118
+torchvision==0.18.1
