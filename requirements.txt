@@ -8,3 +8,5 @@ torchaudio==2.3.1+cu118
 torchvision==0.18.1
 unstructured==0.7.12
 funasr
+modelscope
+chromadb
