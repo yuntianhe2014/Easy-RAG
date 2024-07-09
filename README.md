@@ -54,6 +54,6 @@
     python webui.py
 
 更多介绍参考 公众号文章：世界大模型
-![img](微信图片_20240524180648.jpg)
+![img]([微信图片_20240524180648.jpg](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20240524180648.jpg))
 
 
