@@ -12,9 +12,9 @@ class RAG_class:
     def __init__(self, model="qwen2:7b", embed="mofanke/acge_text_embedding:latest", c_name="sss1",
                  persist_directory="./Chroma_db/"):
         template = """
-        根据上下文回答以下问题:
+        根据上下文回答以下问题,不要自己发挥，要根据以下参考内容总结答案，如果以下内容无法得到答案，就返回无法根据参考内容获取答案，
 
-        {context}
+        参考内容为：{context}
 
         问题: {question}
         """
