@@ -6,7 +6,8 @@ requests
 torch==2.3.1+cu118
 torchaudio==2.3.1+cu118
 torchvision==0.18.1
+transformers==4.41.1
 unstructured==0.7.12
-funasr
+funasr==1.0.24
 modelscope
 chromadb

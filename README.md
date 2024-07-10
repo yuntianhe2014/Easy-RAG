@@ -1,6 +1,7 @@
 # Easy-RAG
 一个适合学习、使用、自主扩展的RAG【检索增强生成】系统！
 
+
 1、目前已有的功能
 
     知识库（目前仅支持txt\csv\pdf\md\doc\docx\mp3\mp4\wav\excel\格式数据）：
@@ -21,19 +22,23 @@
 
         1、支持纯大模型聊天多伦
 
-        2、支持知识库问答
+        2、支持知识库问答 ["复杂召回方式", "简单召回方式","rerank"]
+        3、通过使用rerank重新排序来提高检索效率
+        
+        本次rerank 使用了bge-reranker-large 模型，需要下载到本地，然后再 rag/rerank.py中配置路径
+            模型地址：https://hf-mirror.com/BAAI/bge-reranker-large
 
 2、后续更新计划
 
     知识库：
 
-        0、支持FAISS，Elasticsearch、Milvus等向量数据
+        0、支持FAISS，Elasticsearch、Milvus,MongoDB等向量数据
 
 
     chat：
 
         1、添加 语音回答输出
-        2、通过使用LlamaIndex重新排序来提高检索效率
+        
 
 安装使用
   Ollma安装，在如下网址选择适合你机器的ollama 安装包，傻瓜式安装即可
@@ -43,6 +48,10 @@
   
     ollama run qwen2:7b
     ollama run mofanke/acge_text_embedding:latest
+   
+  下载bge-reranker-large 模型然后在 rag/rerank.py中配置路径
+    
+    https://hf-mirror.com/BAAI/bge-reranker-large
     
   构造python环境
   

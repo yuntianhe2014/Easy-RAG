@@ -4,8 +4,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.runnables import RunnablePassthrough
 from operator import itemgetter
-
 from langchain.prompts import ChatPromptTemplate
+from .rerank import rerank_topn
 
 
 class RAG_class:
@@ -65,6 +65,18 @@ class RAG_class:
             |StrOutputParser()
         )
         answer = _chain.invoke({"question":question})
+        return answer
+
+    def rerank_chain(self,question):
+        retriever = self.vectstore.as_retriever(search_kwargs={"k": 10})
+        docs = retriever.invoke(question)
+        docs = rerank_topn(question,docs,N=5)
+        _chain = (
+                self.prompts
+                | self.llm
+                | StrOutputParser()
+        )
+        answer = _chain.invoke({"context":self.format_docs(docs),"question": question})
         return answer
 
     def format_qa_pairs(self, question, answer):

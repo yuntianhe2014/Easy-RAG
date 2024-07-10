@@ -1,6 +1,6 @@
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import OllamaEmbeddings
-from langchain_community.document_loaders import UnstructuredCSVLoader, UnstructuredPDFLoader,UnstructuredWordDocumentLoader,UnstructuredExcelLoader,UnstructuredMarkdownLoader
+from langchain_community.document_loaders import TextLoader,UnstructuredCSVLoader, UnstructuredPDFLoader,UnstructuredWordDocumentLoader,UnstructuredExcelLoader,UnstructuredMarkdownLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from .asr_utils import get_spk_txt
 
@@ -14,8 +14,12 @@ class ChromaDB():
 
     def parse_data(self,file):
         if "txt" in file.lower() or "csv" in file.lower():
-            loaders = UnstructuredCSVLoader(file)
-            data = loaders.load()
+            try:
+                loaders = UnstructuredCSVLoader(file)
+                data = loaders.load()
+            except:
+                loaders = TextLoader(file,encoding="utf-8")
+                data = loaders.load()
         if ".doc" in file.lower() or ".docx" in file.lower():
             loaders = UnstructuredWordDocumentLoader(file)
             data = loaders.load()
@@ -41,7 +45,8 @@ class ChromaDB():
         return data
 
     # 创建 新的collection 并且初始化
-    def create_collection(self, files, c_name):
+    def create_collection(self, files, c_name,chunk_size=200, chunk_overlap=50):
+        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         print("开始创建数据库 ....")
         tmps = []
         for file in files:
@@ -57,7 +62,8 @@ class ChromaDB():
         return vectorstore
 
     # 添加 数据到已有数据库
-    def add_chroma(self, files, c_name):
+    def add_chroma(self, files, c_name,chunk_size=200, chunk_overlap=50):
+        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         print("开始添加文件...")
         tmps = []
         for file in files:

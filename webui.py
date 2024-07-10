@@ -45,14 +45,14 @@ def delete_collection(selected_knowledge_base):
         return update_knowledge_base_dropdown(), "<div style='color: green; padding: 10px; border: 2px solid green; border-radius: 5px;'>Collection deleted successfully!</div>"
     return update_knowledge_base_dropdown(), "<div style='color: red; padding: 10px; border: 2px solid red; border-radius: 5px;'>Delete collection failed!</div>"
 
-def vectorize_files(selected_files, selected_knowledge_base, new_kb_name):
+def vectorize_files(selected_files, selected_knowledge_base, new_kb_name, chunk_size, chunk_overlap):
     if selected_files:
         if selected_knowledge_base == "创建知识库":
             knowledge_base = new_kb_name
-            chromadb.create_collection(selected_files, knowledge_base)
+            chromadb.create_collection(selected_files, knowledge_base, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         else:
             knowledge_base = selected_knowledge_base
-            chromadb.add_chroma(selected_files, knowledge_base)
+            chromadb.add_chroma(selected_files, knowledge_base, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
         if knowledge_base not in knowledge_base_files:
             knowledge_base_files[knowledge_base] = []
@@ -89,8 +89,10 @@ def chat_response(model_dropdown, vector_dropdown, chat_knowledge_base_dropdown,
             if chain_dropdown == "复杂召回方式":
                 questions = rag.decomposition_chain(message)
                 answer = rag.rag_chain(questions)
-            else:
+            if chain_dropdown == "简单召回方式":
                 answer = rag.simple_chain(message)
+            else:
+                answer = rag.rerank_chain(message)
 
         response = f" {answer}"
         chat_history.append(("Bot", response))
@@ -151,7 +153,10 @@ with gr.Blocks() as demo:
                 upload_btn = gr.Button("Upload")
                 file_list = gr.CheckboxGroup(label="Uploaded Files")
                 delete_btn = gr.Button("Delete Selected Files")
-                vectorize_btn = gr.Button("Vectorize Selected Files")
+                with gr.Row():
+                    chunk_size_dropdown = gr.Dropdown(choices=[50, 100, 200, 300, 500, 700], label="chunk_size", value=200)
+                    chunk_overlap_dropdown = gr.Dropdown(choices=[20, 50, 100, 200], label="chunk_overlap", value=50)
+                    vectorize_btn = gr.Button("Vectorize Selected Files")
                 delete_collection_btn = gr.Button("Delete Collection")
                 upload_status = gr.HTML()
                 delete_status = gr.HTML()
@@ -163,7 +168,7 @@ with gr.Blocks() as demo:
                     model_dropdown = gr.Dropdown(choices=get_llm(), label="模型")
                     vector_dropdown = gr.Dropdown(choices=get_embeding_model(), label="向量")
                     chat_knowledge_base_dropdown = gr.Dropdown(choices=["仅使用模型"] + chromadb.get_all_collections_name(), label="知识库")
-                    chain_dropdown = gr.Dropdown(choices=["复杂召回方式", "简单召回方式"], label="chain方式", visible=False)
+                    chain_dropdown = gr.Dropdown(choices=["复杂召回方式", "简单召回方式","rerank"], label="chain方式", visible=False)
                 chat_display = gr.HTML(label="Chat History")
                 chat_input = gr.Textbox(label="Type a message")
                 chat_btn = gr.Button("Send")
@@ -188,8 +193,8 @@ with gr.Blocks() as demo:
         threading.Thread(target=clear_status).start()
         return delete_result, status, update_chat_knowledge_base_dropdown()
 
-    def handle_vectorize(selected_files, selected_knowledge_base, new_kb_name):
-        vectorize_result, status = vectorize_files(selected_files, selected_knowledge_base, new_kb_name)
+    def handle_vectorize(selected_files, selected_knowledge_base, new_kb_name, chunk_size, chunk_overlap):
+        vectorize_result, status = vectorize_files(selected_files, selected_knowledge_base, new_kb_name, chunk_size, chunk_overlap)
         threading.Thread(target=clear_status).start()
         return vectorize_result, status, update_knowledge_base_dropdown(), update_chat_knowledge_base_dropdown()
 
@@ -205,7 +210,7 @@ with gr.Blocks() as demo:
     )
     upload_btn.click(handle_upload, inputs=file_input, outputs=[file_list, file_list, upload_status, chat_knowledge_base_dropdown])
     delete_btn.click(handle_delete, inputs=[knowledge_base_dropdown, file_list], outputs=[file_list, delete_status, chat_knowledge_base_dropdown])
-    vectorize_btn.click(handle_vectorize, inputs=[file_list, knowledge_base_dropdown, new_kb_input],
+    vectorize_btn.click(handle_vectorize, inputs=[file_list, knowledge_base_dropdown, new_kb_input, chunk_size_dropdown, chunk_overlap_dropdown],
                         outputs=[gr.Textbox(visible=False), vectorize_status, knowledge_base_dropdown, chat_knowledge_base_dropdown])
     delete_collection_btn.click(handle_delete_collection, inputs=knowledge_base_dropdown,
                                 outputs=[knowledge_base_dropdown, delete_collection_status, chat_knowledge_base_dropdown])
