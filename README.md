@@ -2,6 +2,7 @@
 一个适合学习、使用、自主扩展的RAG【检索增强生成】系统！
 
 
+![img](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/zhu.png)
 1、目前已有的功能
 
     知识库（目前仅支持txt\csv\pdf\md\doc\docx\mp3\mp4\wav\excel\格式数据）：
