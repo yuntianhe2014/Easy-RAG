@@ -43,9 +43,12 @@
   
     ollama run qwen2:7b
     ollama run mofanke/acge_text_embedding:latest
+    
   构造python环境
+  
     conda create -n Easy-RAG python=3.10.9
     conda activate Easy-RAG
+    
   项目开发使用的 python3.10.9  经测试 pyhon3.8以上皆可使用
   
     git clone https://github.com/yuntianhe2014/Easy-RAG.git
