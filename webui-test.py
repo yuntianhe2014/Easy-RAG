@@ -14,8 +14,6 @@ from rag.rag_class import *
 # 存储上传的文件
 uploaded_files = []
 
-
-
 # 模拟获取最新的知识库文件
 def get_knowledge_base_files():
     cl_dict = {}
@@ -113,9 +111,23 @@ def format_chat_history(history):
     formatted_history = ""
     for user, msg in history:
         if user == "User":
-            formatted_history += f'<div style="text-align: right; margin: 10px;">{msg}<b>:User</b> </div>'
+            formatted_history += f'''
+            <div style="text-align: right; margin: 10px;">
+                <div style="display: inline-block; background-color: #DCF8C6; padding: 10px; border-radius: 10px; max-width: 60%;">
+                    {msg}
+                </div>
+                <b>:User</b>
+            </div>
+            '''
         else:
-            formatted_history += f'<div style="text-align: left; margin: 10px;"><b>Bot:</b> {msg}</div>'
+            formatted_history += f'''
+            <div style="text-align: left; margin: 10px;">
+                <b>Bot:</b>
+                <div style="display: inline-block; background-color: #F1F0F0; padding: 10px; border-radius: 10px; max-width: 60%;">
+                    {msg}
+                </div>
+            </div>
+            '''
     return formatted_history
 
 def clear_status():
