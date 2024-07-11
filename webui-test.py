@@ -1,21 +1,27 @@
 import gradio as gr
 import threading
+from Config.config import VECTOR_DB,DB_directory
 
-from embeding.chromadb import *
+if VECTOR_DB==1:
+    from embeding.chromadb import ChromaDB as vectorDB
+    vectordb = vectorDB(persist_directory=DB_directory)
+elif VECTOR_DB==2:
+    from embeding.faissdb import FaissDB as vectorDB
+    vectordb = vectorDB(persist_directory=DB_directory)
 from Ollama_api.ollama_api import *
 from rag.rag_class import *
 
 # 存储上传的文件
 uploaded_files = []
 
-chromadb = ChromaDB(persist_directory="./Chroma_db/")
+
 
 # 模拟获取最新的知识库文件
 def get_knowledge_base_files():
     cl_dict = {}
-    cols = chromadb.get_all_collections_name()
+    cols = vectordb.get_all_collections_name()
     for c_name in cols:
-        cl_dict[c_name] = chromadb.get_collcetion_content_files(c_name)
+        cl_dict[c_name] = vectordb.get_collcetion_content_files(c_name)
     return cl_dict
 
 knowledge_base_files = get_knowledge_base_files()
@@ -40,7 +46,7 @@ def delete_files(selected_files):
 
 def delete_collection(selected_knowledge_base):
     if selected_knowledge_base and selected_knowledge_base != "创建知识库":
-        chromadb.delete_collection(selected_knowledge_base)
+        vectordb.delete_collection(selected_knowledge_base)
         update_knowledge_base_files()
         return update_knowledge_base_dropdown(), "<div style='color: green; padding: 10px; border: 2px solid green; border-radius: 5px;'>Collection deleted successfully!</div>"
     return update_knowledge_base_dropdown(), "<div style='color: red; padding: 10px; border: 2px solid red; border-radius: 5px;'>Delete collection failed!</div>"
@@ -49,10 +55,10 @@ def vectorize_files(selected_files, selected_knowledge_base, new_kb_name, chunk_
     if selected_files:
         if selected_knowledge_base == "创建知识库":
             knowledge_base = new_kb_name
-            chromadb.create_collection(selected_files, knowledge_base, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+            vectordb.create_collection(selected_files, knowledge_base, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         else:
             knowledge_base = selected_knowledge_base
-            chromadb.add_chroma(selected_files, knowledge_base, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+            vectordb.add_chroma(selected_files, knowledge_base, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
         if knowledge_base not in knowledge_base_files:
             knowledge_base_files[knowledge_base] = []
@@ -82,14 +88,14 @@ def chat_response(model_dropdown, vector_dropdown, chat_knowledge_base_dropdown,
     if message:
         chat_history.append(("User", message))
         if chat_knowledge_base_dropdown == "仅使用模型":
-            rag = RAG_class(model=model_dropdown)
+            rag = RAG_class(model=model_dropdown,persist_directory=DB_directory)
             answer = rag.mult_chat(chat_history)
         if chat_knowledge_base_dropdown and chat_knowledge_base_dropdown != "仅使用模型":
-            rag = RAG_class(model=model_dropdown, embed=vector_dropdown, c_name=chat_knowledge_base_dropdown)
+            rag = RAG_class(model=model_dropdown, embed=vector_dropdown, c_name=chat_knowledge_base_dropdown, persist_directory=DB_directory)
             if chain_dropdown == "复杂召回方式":
                 questions = rag.decomposition_chain(message)
                 answer = rag.rag_chain(questions)
-            if chain_dropdown == "简单召回方式":
+            elif chain_dropdown == "简单召回方式":
                 answer = rag.simple_chain(message)
             else:
                 answer = rag.rerank_chain(message)
@@ -167,7 +173,7 @@ with gr.Blocks() as demo:
                 with gr.Row():
                     model_dropdown = gr.Dropdown(choices=get_llm(), label="模型")
                     vector_dropdown = gr.Dropdown(choices=get_embeding_model(), label="向量")
-                    chat_knowledge_base_dropdown = gr.Dropdown(choices=["仅使用模型"] + chromadb.get_all_collections_name(), label="知识库")
+                    chat_knowledge_base_dropdown = gr.Dropdown(choices=["仅使用模型"] + vectordb.get_all_collections_name(), label="知识库")
                     chain_dropdown = gr.Dropdown(choices=["复杂召回方式", "简单召回方式","rerank"], label="chain方式", visible=False)
                 chat_display = gr.HTML(label="Chat History")
                 chat_input = gr.Textbox(label="Type a message")
@@ -181,13 +187,13 @@ with gr.Blocks() as demo:
 
     def handle_delete(selected_knowledge_base, selected_files):
         tmp = []
-        cols_files_tmp = chromadb.get_collcetion_content_files(c_name=selected_knowledge_base)
+        cols_files_tmp = vectordb.get_collcetion_content_files(c_name=selected_knowledge_base)
         for i in selected_files:
             if i in cols_files_tmp:
                 tmp.append(i)
         del cols_files_tmp
         if tmp:
-            chromadb.del_files(tmp, c_name=selected_knowledge_base)
+            vectordb.del_files(tmp, c_name=selected_knowledge_base)
         del tmp
         delete_result, status = delete_files(selected_files)
         threading.Thread(target=clear_status).start()

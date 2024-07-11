@@ -1,4 +1,4 @@
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma,FAISS
 from langchain_community.llms import Ollama
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.embeddings import OllamaEmbeddings
@@ -6,6 +6,7 @@ from langchain_core.runnables import RunnablePassthrough
 from operator import itemgetter
 from langchain.prompts import ChatPromptTemplate
 from .rerank import rerank_topn
+from Config.config import VECTOR_DB,DB_directory
 
 
 class RAG_class:
@@ -48,10 +49,16 @@ class RAG_class:
 
         self.llm = Ollama(model=model)
         self.embeding = OllamaEmbeddings(model=embed)
-
-        self.vectstore = Chroma(embedding_function=self.embeding, collection_name=c_name,
-                                persist_directory=persist_directory)
-        self.retriever = self.vectstore.as_retriever()
+        try:
+            if VECTOR_DB==1:
+                self.vectstore = Chroma(embedding_function=self.embeding, collection_name=c_name,
+                                    persist_directory=persist_directory)
+            elif VECTOR_DB ==2:
+                self.vectstore = FAISS.load_local(folder_path=persist_directory + c_name, embeddings=self.embeding,
+                                               allow_dangerous_deserialization=True)
+            self.retriever = self.vectstore.as_retriever()
+        except:
+            print("仅模型时无需加载数据库")
     #
     # Post-processing
     def format_docs(self,docs):
