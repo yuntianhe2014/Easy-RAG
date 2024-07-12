@@ -120,14 +120,25 @@ def format_chat_history(history):
             </div>
             '''
         else:
-            formatted_history += f'''
-            <div style="text-align: left; margin: 10px;">
-                <b>Bot:</b>
-                <div style="display: inline-block; background-color: #F1F0F0; padding: 10px; border-radius: 10px; max-width: 60%;">
-                    {msg}
+            if "```" in msg:  # 检测是否包含代码片段
+                code_content = msg.split("```")[1]
+                formatted_history += f'''
+                <div style="text-align: left; margin: 10px;">
+                    <b>Bot:</b>
+                    <div style="display: inline-block; background-color: #F1F0F0; padding: 10px; border-radius: 10px; max-width: 60%;">
+                        <pre><code>{code_content}</code></pre>
+                    </div>
                 </div>
-            </div>
-            '''
+                '''
+            else:
+                formatted_history += f'''
+                <div style="text-align: left; margin: 10px;">
+                    <b>Bot:</b>
+                    <div style="display: inline-block; background-color: #F1F0F0; padding: 10px; border-radius: 10px; max-width: 60%;">
+                        {msg}
+                    </div>
+                </div>
+                '''
     return formatted_history
 
 def clear_status():
