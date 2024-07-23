@@ -22,7 +22,7 @@
 
     chat
 
-        1、支持纯大模型聊天多伦
+        1、支持纯大模型聊天多轮
         2、支持知识库问答 ["复杂召回方式", "简单召回方式","rerank"]
 ![img](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/复杂方式.png)
         3、通过使用rerank重新排序来提高检索效率

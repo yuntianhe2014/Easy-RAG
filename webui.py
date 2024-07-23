@@ -253,4 +253,4 @@ with gr.Blocks() as demo:
         outputs=chain_dropdown
     )
 
-demo.launch(debug=True)
+demo.launch(debug=True,share=True)
