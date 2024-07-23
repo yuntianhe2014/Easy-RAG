@@ -171,7 +171,7 @@ with gr.Blocks() as demo:
         # 添加标题
         title = gr.HTML("<h1 style='text-align: center; font-size: 32px; font-weight: bold;'>RAG精致系统</h1>")
         # 添加公告栏
-        announcement = gr.HTML("<div style='text-align: center; font-size: 18px; color: red;'>公告栏: 欢迎使用RAG精致系统，一个适合学习、使用、自主扩展的【检索增强生成】系统！<br/>公众号：世界大模型</div>")
+        announcement = gr.HTML("<div style='text-align: center; font-size: 18px; color: red;'>公告栏: 欢迎使用RAG精致系统</div>")
 
         with gr.Tabs():
             with gr.TabItem("知识库"):
@@ -253,4 +253,4 @@ with gr.Blocks() as demo:
         outputs=chain_dropdown
     )
 
-demo.launch(debug=True)
+demo.launch(debug=True,share=True)

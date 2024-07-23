@@ -5,6 +5,7 @@
 ![img](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/zhu.png)
 更新历史
 
+        2024/7/23 参考 meet-libai 项目增加了一个知识图谱的时时提取工具，目前仅是提取，未存储 graph_demo_ui.py
         2024/7/11 新增faiss向量数据库支持，目前支持(Chroma\FAISS)
         2024/7/10 更新rerank搜索方式
         2024/7/09 第一版发布
@@ -74,8 +75,13 @@
       项目启动
       
         python webui.py
+        
+      知识图谱时时提取工具
+        python graph_demo_ui.py
+  ![img](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/graph-tool.png)
 
 更多介绍参考 公众号文章：世界大模型
 ![img](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20240524180648.jpg)
 
-
+项目参考：
+    https://github.com/BinNong/meet-libai
