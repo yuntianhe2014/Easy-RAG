@@ -5,6 +5,7 @@
 ![img](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/zhu.png)
 更新历史
 
+        2024/8/21 增加对 Elasticsearch 支持，在config中设置
         2024/7/23 参考 meet-libai 项目增加了一个知识图谱的时时提取工具，目前仅是提取，未存储 graph_demo_ui.py
         2024/7/11 新增faiss向量数据库支持，目前支持(Chroma\FAISS)
         2024/7/10 更新rerank搜索方式
@@ -13,7 +14,7 @@
 
     知识库（目前仅支持txt\csv\pdf\md\doc\docx\mp3\mp4\wav\excel\格式数据）：
 
-        1、知识库的创建（目前仅支持Chroma\Faiss）
+        1、知识库的创建（目前仅支持Chroma\Faiss\Elasticsearch）
         2、知识库的更新
         3、删除知识库中某个文件
         4、删除知识库
@@ -61,6 +62,10 @@
       选择你想使用的向量数据库 目前仅支持（Chroma和Faiss）
       
         在 Config/config.py中配置你想用的 向量数据库
+        如果选择 Elasticsearch 请先启动 Elasticsearch，我是使用docker 启动的
+           docker run -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" -e "xpack.security.http.ssl.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+        注意修改 es_url
+        
       构造python环境
       
         conda create -n Easy-RAG python=3.10.9

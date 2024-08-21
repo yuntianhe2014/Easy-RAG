@@ -7,11 +7,12 @@ from operator import itemgetter
 from langchain.prompts import ChatPromptTemplate
 from .rerank import rerank_topn
 from Config.config import VECTOR_DB,DB_directory
+from langchain_elasticsearch.vectorstores import ElasticsearchStore
 
 
 class RAG_class:
     def __init__(self, model="qwen2:7b", embed="mofanke/acge_text_embedding:latest", c_name="sss1",
-                 persist_directory="./Chroma_db/"):
+                 persist_directory="./Chroma_db/",es_url="http://localhost:9200"):
         template = """
         根据上下文回答以下问题,不要自己发挥，要根据以下参考内容总结答案，如果以下内容无法得到答案，就返回无法根据参考内容获取答案，
 
@@ -56,9 +57,15 @@ class RAG_class:
             elif VECTOR_DB ==2:
                 self.vectstore = FAISS.load_local(folder_path=persist_directory + c_name, embeddings=self.embeding,
                                                allow_dangerous_deserialization=True)
+            elif VECTOR_DB ==3:
+                self.vectstore = ElasticsearchStore(
+                    es_url=es_url,
+                    index_name=c_name,
+                    embedding=self.embeding
+                )
             self.retriever = self.vectstore.as_retriever()
-        except:
-            print("仅模型时无需加载数据库")
+        except Exception as e:
+            print("仅模型时无需加载数据库",e)
     #
     # Post-processing
     def format_docs(self,docs):

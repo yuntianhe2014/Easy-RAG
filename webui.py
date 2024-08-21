@@ -8,6 +8,9 @@ if VECTOR_DB==1:
 elif VECTOR_DB==2:
     from embeding.faissdb import FaissDB as vectorDB
     vectordb = vectorDB(persist_directory=DB_directory)
+elif VECTOR_DB==3:
+    from embeding.elasticsearchStore import ElsStore as vectorDB
+    vectordb = vectorDB()
 from Ollama_api.ollama_api import *
 from rag.rag_class import *
 
