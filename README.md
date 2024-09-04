@@ -31,17 +31,20 @@
 
         1、支持纯大模型聊天多轮
         2、支持知识库问答 ["复杂召回方式", "简单召回方式","rerank"]
-![img](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/复杂方式.png)
-        3、通过使用rerank重新排序来提高检索效率
         
-        本次rerank 使用了bge-reranker-large 模型，需要下载到本地，然后再 rag/rerank.py中配置路径
-            模型地址：https://hf-mirror.com/BAAI/bge-reranker-large
-     AI网络搜索
+    AI网络搜索
         
         支持网络搜素，大家可以优化 prompt 增加不同 程度的 总结
         llm基于ollama可以选择不同模型
         注意：联网基于 searxng，需要先本地或者服务启动 这个项目，我用docker 启动的
         参考 https://github.com/searxng/searxng-docker
+        
+![img](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/复杂方式.png)
+        3、通过使用rerank重新排序来提高检索效率
+        
+        本次rerank 使用了bge-reranker-large 模型，需要下载到本地，然后再 rag/rerank.py中配置路径
+            模型地址：https://hf-mirror.com/BAAI/bge-reranker-large
+     
 
 2、后续更新计划
 
