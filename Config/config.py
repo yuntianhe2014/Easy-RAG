@@ -1,5 +1,5 @@
 # 向量数据库选择 【chroma：1】 ，【faiss 2】,【ElasticsearchStore 3】
-VECTOR_DB = 3
+VECTOR_DB = 2
 DB_directory = "./Chroma_db/"
 if VECTOR_DB==2:
     DB_directory ="./Faiss_db/"

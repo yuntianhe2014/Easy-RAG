@@ -1,23 +1,36 @@
 import gradio as gr
 import threading
-from Config.config import VECTOR_DB,DB_directory
+import asyncio
+import logging
+from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache
+import requests
+import json
 
-if VECTOR_DB==1:
-    from embeding.chromadb import ChromaDB as vectorDB
-    vectordb = vectorDB(persist_directory=DB_directory)
-elif VECTOR_DB==2:
-    from embeding.faissdb import FaissDB as vectorDB
-    vectordb = vectorDB(persist_directory=DB_directory)
-elif VECTOR_DB==3:
-    from embeding.elasticsearchStore import ElsStore as vectorDB
-    vectordb = vectorDB()
+# 假设这些是您的自定义模块，需要根据实际情况进行调整
+from Config.config import VECTOR_DB, DB_directory
 from Ollama_api.ollama_api import *
 from rag.rag_class import *
+
+# 设置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# 根据VECTOR_DB选择合适的向量数据库
+if VECTOR_DB == 1:
+    from embeding.chromadb import ChromaDB as vectorDB
+    vectordb = vectorDB(persist_directory=DB_directory)
+elif VECTOR_DB == 2:
+    from embeding.faissdb import FaissDB as vectorDB
+    vectordb = vectorDB(persist_directory=DB_directory)
+elif VECTOR_DB == 3:
+    from embeding.elasticsearchStore import ElsStore as vectorDB
+    vectordb = vectorDB()
 
 # 存储上传的文件
 uploaded_files = []
 
-# 模拟获取最新的知识库文件
+@lru_cache(maxsize=100)
 def get_knowledge_base_files():
     cl_dict = {}
     cols = vectordb.get_all_collections_name()
@@ -32,6 +45,7 @@ def upload_files(files):
         new_files = [file.name for file in files]
         uploaded_files.extend(new_files)
         update_knowledge_base_files()
+        logger.info(f"Uploaded files: {new_files}")
         return update_file_list(), new_files, "<div style='color: green; padding: 10px; border: 2px solid green; border-radius: 5px;'>Upload successful!</div>"
     update_knowledge_base_files()
     return update_file_list(), [], "<div style='color: red; padding: 10px; border: 2px solid red; border-radius: 5px;'>Upload failed!</div>"
@@ -41,6 +55,7 @@ def delete_files(selected_files):
     uploaded_files = [f for f in uploaded_files if f not in selected_files]
     if selected_files:
         update_knowledge_base_files()
+        logger.info(f"Deleted files: {selected_files}")
         return update_file_list(), "<div style='color: green; padding: 10px; border: 2px solid green; border-radius: 5px;'>Delete successful!</div>"
     update_knowledge_base_files()
     return update_file_list(), "<div style='color: red; padding: 10px; border: 2px solid red; border-radius: 5px;'>Delete failed!</div>"
@@ -49,10 +64,11 @@ def delete_collection(selected_knowledge_base):
     if selected_knowledge_base and selected_knowledge_base != "创建知识库":
         vectordb.delete_collection(selected_knowledge_base)
         update_knowledge_base_files()
+        logger.info(f"Deleted collection: {selected_knowledge_base}")
         return update_knowledge_base_dropdown(), "<div style='color: green; padding: 10px; border: 2px solid green; border-radius: 5px;'>Collection deleted successfully!</div>"
     return update_knowledge_base_dropdown(), "<div style='color: red; padding: 10px; border: 2px solid red; border-radius: 5px;'>Delete collection failed!</div>"
 
-def vectorize_files(selected_files, selected_knowledge_base, new_kb_name, chunk_size, chunk_overlap):
+async def async_vectorize_files(selected_files, selected_knowledge_base, new_kb_name, chunk_size, chunk_overlap):
     if selected_files:
         if selected_knowledge_base == "创建知识库":
             knowledge_base = new_kb_name
@@ -65,6 +81,8 @@ def vectorize_files(selected_files, selected_knowledge_base, new_kb_name, chunk_
             knowledge_base_files[knowledge_base] = []
         knowledge_base_files[knowledge_base].extend(selected_files)
 
+        logger.info(f"Vectorized files: {selected_files} for knowledge base: {knowledge_base}")
+        await asyncio.sleep(0)  # 允许其他任务执行
         return f"Vectorized files: {', '.join(selected_files)}\nKnowledge Base: {knowledge_base}\nUploaded Files: {', '.join(uploaded_files)}", "<div style='color: green; padding: 10px; border: 2px solid green; border-radius: 5px;'>Vectorization successful!</div>"
     return "", "<div style='color: red; padding: 10px; border: 2px solid red; border-radius: 5px;'>Vectorization failed!</div>"
 
@@ -83,6 +101,13 @@ def update_knowledge_base_files():
 
 # 处理聊天消息的函数
 chat_history = []
+
+def safe_chat_response(model_dropdown, vector_dropdown, chat_knowledge_base_dropdown, chain_dropdown, message):
+    try:
+        return chat_response(model_dropdown, vector_dropdown, chat_knowledge_base_dropdown, chain_dropdown, message)
+    except Exception as e:
+        logger.error(f"Error in chat response: {str(e)}")
+        return f"<div style='color: red;'>Error: {str(e)}</div>", ""
 
 def chat_response(model_dropdown, vector_dropdown, chat_knowledge_base_dropdown, chain_dropdown, message):
     global chat_history
@@ -226,7 +251,7 @@ with gr.Blocks() as demo:
         return delete_result, status, update_chat_knowledge_base_dropdown()
 
     def handle_vectorize(selected_files, selected_knowledge_base, new_kb_name, chunk_size, chunk_overlap):
-        vectorize_result, status = vectorize_files(selected_files, selected_knowledge_base, new_kb_name, chunk_size, chunk_overlap)
+        vectorize_result, status = asyncio.run(async_vectorize_files(selected_files, selected_knowledge_base, new_kb_name, chunk_size, chunk_overlap))
         threading.Thread(target=clear_status).start()
         return vectorize_result, status, update_knowledge_base_dropdown(), update_chat_knowledge_base_dropdown()
 
