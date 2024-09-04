@@ -3,13 +3,18 @@
 
 
 ![img](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/zhu.png)
+
 更新历史
 
+        2024/9/04 增加 AI网络搜索 可以联网查询
+        2024/9/04 优化webui异步调用，提高响应速度
         2024/8/21 增加对 Elasticsearch 支持，在config中设置
         2024/7/23 参考 meet-libai 项目增加了一个知识图谱的时时提取工具，目前仅是提取，未存储 graph_demo_ui.py
         2024/7/11 新增faiss向量数据库支持，目前支持(Chroma\FAISS)
         2024/7/10 更新rerank搜索方式
         2024/7/09 第一版发布
+![img](https://github.com/yuntianhe2014/Easy-RAG/blob/main/img/zhuye.png)
+
 1、目前已有的功能
 
     知识库（目前仅支持txt\csv\pdf\md\doc\docx\mp3\mp4\wav\excel\格式数据）：
@@ -31,6 +36,12 @@
         
         本次rerank 使用了bge-reranker-large 模型，需要下载到本地，然后再 rag/rerank.py中配置路径
             模型地址：https://hf-mirror.com/BAAI/bge-reranker-large
+     AI网络搜索
+        
+        支持网络搜素，大家可以优化 prompt 增加不同 程度的 总结
+        llm基于ollama可以选择不同模型
+        注意：联网基于 searxng，需要先本地或者服务启动 这个项目，我用docker 启动的
+        参考 https://github.com/searxng/searxng-docker
 
 2、后续更新计划
 
@@ -77,6 +88,9 @@
       安装依赖
       
         pip3 install -r requirements.txt -i  https://mirrors.aliyun.com/pypi/simple
+       
+      部署依赖联网项目searxng
+        参考 https://github.com/searxng/searxng-docker
       项目启动
       
         python webui.py
@@ -90,3 +104,4 @@
 
 项目参考：
     https://github.com/BinNong/meet-libai
+    https://github.com/searxng/searxng-docker

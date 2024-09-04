@@ -193,6 +193,61 @@ def update_chat_knowledge_base_dropdown():
     choices = ["仅使用模型"] + list(knowledge_base_files.keys())
     return gr.update(choices=choices)
 
+
+# SearxNG搜索函数
+def search_searxng(query):
+    searxng_url = 'http://localhost:8080/search'  # 替换为你的SearxNG实例URL
+    params = {
+        'q': query,
+        'format': 'json'
+    }
+    response = requests.get(searxng_url, params=params)
+    response.raise_for_status()
+    return response.json()
+
+
+# Ollama总结函数
+def summarize_with_ollama(model_dropdown,text, question):
+    prompt = """
+        根据下边的内容，回答用户问题，
+        内容为：‘{0}‘\n
+        问题为：{1}
+    """.format(text, question)
+    ollama_url = 'http://localhost:11434/api/generate'  # 替换为你的Ollama实例URL
+    data = {
+        'model': model_dropdown,
+        "prompt": prompt,
+        "stream": False
+    }
+    response = requests.post(ollama_url, json=data)
+    response.raise_for_status()
+    return response.json()
+
+
+# 处理函数
+def ai_web_search(model_dropdown,user_query):
+    # 使用SearxNG进行搜索
+    search_results = search_searxng(user_query)
+    search_texts = [result['title'] + "\n" + result['content'] for result in search_results['results']]
+    combined_text = "\n\n".join(search_texts)
+
+    # 使用Ollama进行总结
+    summary = summarize_with_ollama(model_dropdown,combined_text, user_query)
+    # print(summary)
+    # 返回结果
+    return summary['response']
+# 添加新的函数来处理AI网络搜索
+# def ai_web_search(model_dropdown, query):
+#     try:
+#         # 这里添加实际的网络搜索和AI处理逻辑
+#         # 这只是一个示例，您需要根据实际情况实现
+#         search_result = f"搜索结果: {query}"
+#         ai_response = f"AI回答: 基于搜索结果，对于'{query}'的回答是..."
+#         return f"{search_result}\n\n{ai_response}"
+#     except Exception as e:
+#         logger.error(f"Error in AI web search: {str(e)}")
+#         return f"<div style='color: red;'>Error: {str(e)}</div>"
+
 # 创建 Gradio 界面
 with gr.Blocks() as demo:
     with gr.Column():
@@ -230,6 +285,14 @@ with gr.Blocks() as demo:
                 chat_input = gr.Textbox(label="Type a message")
                 chat_btn = gr.Button("Send")
                 clear_btn = gr.Button("Clear Chat History")
+
+            with gr.TabItem("AI网络搜索"):
+                with gr.Row():
+                    web_search_model_dropdown = gr.Dropdown(choices=get_llm(), label="模型")
+                web_search_output = gr.Textbox(label="搜索结果和AI回答", lines=10)
+                web_search_input = gr.Textbox(label="输入搜索查询")
+
+                web_search_btn = gr.Button("搜索")
 
     def handle_upload(files):
         upload_result, new_files, status = upload_files(files)
@@ -279,6 +342,13 @@ with gr.Blocks() as demo:
         fn=lambda selected: gr.update(visible=selected != "仅使用模型"),
         inputs=chat_knowledge_base_dropdown,
         outputs=chain_dropdown
+    )
+
+    # 添加新的点击事件处理
+    web_search_btn.click(
+        ai_web_search,
+        inputs=[web_search_model_dropdown, web_search_input],
+        outputs=web_search_output
     )
 
 demo.launch(debug=True,share=True)
